@@ -7,10 +7,34 @@ const roomSchema = new mongoose.Schema({
     },
     roomId: {
         type: String,
-        required: [true, 'please provide roomId']
+        required: [true, 'please provide roomId'],
+        unique: true
+    },
+    connected: {
+        type: [String],
+        required: true,
+        validate: {
+            validator: function (v) {
+                return v.length <= 2;
+            },
+            message: "Room cannot have more than 2 participants"
+        }
+    },
+    isFull: {
+        type: Boolean,
+        default: false
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 })
 
-const Room = mongoose.models.Rooms || mongoose.model("Rooms", roomSchema)
+roomSchema.pre('save', function () {
+    this.isFull = this.connected.length >= 2;
+})
+
+delete mongoose.models.Rooms;
+const Room = mongoose.model("Rooms", roomSchema);
 
 export default Room
